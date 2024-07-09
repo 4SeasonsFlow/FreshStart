@@ -1,6 +1,7 @@
 package com.example.freshstart.ui
 
 import androidx.annotation.StringRes
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -13,6 +14,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.freshstart.FreshStartApplication
 import com.example.freshstart.R
 import com.example.freshstart.data.images.FreshImage
+import com.example.freshstart.data.images.FreshImageArtist
 import com.example.freshstart.data.images.ImageRepository
 import com.example.freshstart.data.quotes.FreshQuote
 import com.example.freshstart.data.quotes.QuoteRepository
@@ -27,9 +29,11 @@ sealed interface HomeUiState {
         @StringRes var freshWord: Int = R.string.placeholder_word,
         var freshImage: FreshImage,
         var freshQuote: List<FreshQuote>,
+        var freshImageArtist: FreshImageArtist
         //@StringRes var quoteAuthor: Int = R.string.placeholder_author,
         //var isRefreshing: Boolean = false
     ) : HomeUiState
+
     data object Error : HomeUiState
     data object Loading : HomeUiState
 }
@@ -42,6 +46,8 @@ class HomeScreenViewModel(
         private set
     var isRefreshing by mutableStateOf(false)
         private set
+    var quoteSnackbarHostState = SnackbarHostState() // val? private set?
+    var isBottomSheetVisible by mutableStateOf(false)
 
     init {
         getFreshCard()
@@ -63,13 +69,32 @@ class HomeScreenViewModel(
         return quote.await()
     }
 
+    private fun getRandomImageArtist(image: FreshImage): FreshImageArtist {
+        val artistInfo: FreshImageArtist = image.artistInfo
+        return artistInfo
+    }
+
+    fun showBottomSheet() {
+        viewModelScope.launch {
+            isBottomSheetVisible = true
+        }
+    }
+
+    fun hideBottomSheet() {
+        viewModelScope.launch {
+            isBottomSheetVisible = false
+        }
+    }
+
     fun getFreshCard() {
         viewModelScope.launch {
             isRefreshing = true
             uiState = try {
+                val newImage = getRandomImage()
                 HomeUiState.Success(
-                    freshImage = getRandomImage(),
+                    freshImage = newImage,
                     freshQuote = getRandomQuote(),
+                    freshImageArtist = getRandomImageArtist(newImage)
                 )
             } catch (e: IOException) {
                 HomeUiState.Error
@@ -78,6 +103,12 @@ class HomeScreenViewModel(
             } finally {
                 isRefreshing = false
             }
+        }
+    }
+
+    fun showQuoteSnackbar(message: String) {
+        viewModelScope.launch {
+            quoteSnackbarHostState.showSnackbar(message)
         }
     }
 

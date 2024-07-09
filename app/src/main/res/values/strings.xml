@@ -3,9 +3,11 @@
     <string name="placeholder_word">Placeholder Word</string>
     <string name="placeholder_quote">Placeholder Quote</string>
     <string name="placeholder_author">Placeholder Author</string>
-    <string name="loading">Loading...</string>
+    <string name="loading">Loading…</string>
     <string name="error">Error</string>
     <string name="json_placeholder">Json appears hear</string>
     <string name="placeholder_image_text">Placeholder Image Text</string>
     <string name="retry">Retry</string>
+    <string name="zenqoutes_attribution">Inspirational quotes provided by ZenQuotes API</string>
+    <string name="utm_parameters">\?utm_source=fresh_start&amp;utm_medium=referral</string>
 </resources>

@@ -1,14 +1,13 @@
 package com.example.freshstart.ui
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -17,13 +16,14 @@ import com.example.freshstart.R
 
 @Composable
 fun FreshStartApp() {
+    val homeScreenViewModel: HomeScreenViewModel =
+        viewModel(factory = HomeScreenViewModel.Factory)
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        topBar = { FreshStartTopAppBar() }
+        topBar = { FreshStartTopAppBar() },
+        snackbarHost = { SnackbarHost(hostState = homeScreenViewModel.quoteSnackbarHostState ) }
     ) { innerPadding ->
-        val homeScreenViewModel: HomeScreenViewModel =
-            viewModel(factory = HomeScreenViewModel.Factory)
-
         Surface(modifier = Modifier.padding(innerPadding)) {
             HomeScreen(
                 viewModel = homeScreenViewModel,

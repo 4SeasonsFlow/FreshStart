@@ -24,6 +24,7 @@ fun PullToRefreshColumn(
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(8.dp),
+    horizontalAlignment: Alignment.Horizontal = Alignment.Start,
     content: @Composable () -> Unit,
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
@@ -35,8 +36,9 @@ fun PullToRefreshColumn(
             modifier = Modifier
                 .padding(contentPadding)
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-        ) {
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = horizontalAlignment,
+            ) {
             content()
         }
         if (pullToRefreshState.isRefreshing) {

@@ -20,7 +20,10 @@ class DefaultAppContainer : AppContainer {
     private val imageBaseUrl = "https://api.unsplash.com"
     private val quoteBaseUrl = "https://zenquotes.io"
 
-    private val json = Json { ignoreUnknownKeys = true }
+    private val json = Json {
+        ignoreUnknownKeys = true
+        coerceInputValues = true
+    }
 
     private val retrofitImages = Retrofit.Builder()
         //.addConverterFactory(ScalarsConverterFactory.create())
