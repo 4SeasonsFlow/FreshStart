@@ -1,5 +1,11 @@
 package com.example.freshstart.ui
 
+import android.app.SearchManager
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
@@ -12,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,11 +38,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -71,7 +80,6 @@ fun HomeScreen(
             contentPadding = contentPadding,
             onRefresh = viewModel::getFreshCard,
             isRefreshing = viewModel.isRefreshing,
-            onQuoteClick = viewModel::showQuoteSnackbar,//{ viewModel.showQuoteSnackbar("snackbar!!") }
             onImageClick = viewModel::showBottomSheet,
             hideBottomSheet = viewModel::hideBottomSheet,
             isBottomSheetVisible = viewModel.isBottomSheetVisible
@@ -91,7 +99,6 @@ fun FreshStartScreen(
     image: FreshImage,
     quote: List<FreshQuote>,
     onRefresh: () -> Unit,
-    onQuoteClick: (String) -> Unit,
     onImageClick: () -> Unit,
     hideBottomSheet: () -> Unit,
     isBottomSheetVisible: Boolean,
@@ -99,10 +106,8 @@ fun FreshStartScreen(
     contentPadding: PaddingValues = PaddingValues(0.dp),
     isRefreshing: Boolean
 ) {
-    val scope = rememberCoroutineScope()
     val bottomSheetState = rememberModalBottomSheetState()
     var showBottomSheet1 by remember { mutableStateOf(false) }
-
 
     if (showBottomSheet1) {
         ModalBottomSheet(
@@ -116,15 +121,6 @@ fun FreshStartScreen(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                /*Button(onClick = {
-                    scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
-                        if (!bottomSheetState.isVisible) {
-                            showBottomSheet1 = false
-                        }
-                    }
-                }) {
-                    Text(text = "Hide Bottom Sheet")
-                }*/
                 ImageDetailsScreen(
                     image = image,
                     artist = image.artistInfo,
@@ -134,34 +130,9 @@ fun FreshStartScreen(
             }
         }
     }
-    /*LaunchedEffect(key1 = true) {
-        if (isBottomSheetVisible) {
-            scope.launch {
-                bottomSheetState.show()
-            }
-        } else {
-            scope.launch {
-                bottomSheetState.hide()
-            }
-        }
-    }*/
 
-
-    /*Column(
-        modifier = Modifier
-            .fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-    ) {
-        FreshStartCard(
-            //uiState = uiState,
-            word, image, quote, author,
-            modifier = Modifier,
-            contentPadding = contentPadding
-        )
-
-    }*/
     Box(
-        modifier = modifier//.padding(contentPadding)
+        modifier = modifier
     ) {
         PullToRefreshColumn(
             isRefreshing = isRefreshing,
@@ -170,32 +141,13 @@ fun FreshStartScreen(
             modifier = Modifier,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-
             FreshStartCard(
                 word = word,
                 image = image,
                 quote = quote,
-                onQuoteClick = onQuoteClick,
-                onImageClick = { showBottomSheet1 = true },//onImageClick,
+                onImageClick = { showBottomSheet1 = true },
                 modifier = Modifier,
-                //contentPadding = contentPadding
             )
-            /*if (bottomSheetState.isVisible) {
-                ModalBottomSheet(
-                    onDismissRequest = {
-                        scope.launch {
-                            hideBottomSheet()
-                            bottomSheetState.hide()
-                        }
-                    },
-                ) {
-                    Text("Hide bottom sheet")
-                }
-
-            }*/
-            /*Button(onClick = { showBottomSheet1 = true }) {
-                Text(text = "show bottom sheet")
-            }*/
         }
     }
 }
@@ -234,13 +186,11 @@ fun ErrorScreen(
     }
 }
 
-// populated with the "fresh material" each refresh/day
 @Composable
 fun FreshStartCard(
     word: Int,
     image: FreshImage,//,
     quote: List<FreshQuote>,
-    onQuoteClick: (String) -> Unit,
     onImageClick: () -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp)
@@ -271,7 +221,6 @@ fun FreshStartCard(
             QuoteBox(
                 quoteText = quote[0].quote,
                 quoteAuthor = quote[0].quoteAuthor,
-                onQuoteClick = onQuoteClick
             )
         }
     }
@@ -317,10 +266,11 @@ fun ImageBox(
 fun QuoteBox(
     quoteText: String,
     quoteAuthor: String,
-    onQuoteClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
     val quoteAttribution = stringResource(id = R.string.zenqoutes_attribution)
+    val quoteSourceUrl = stringResource(id = R.string.zenqoutes_url)
     val tooltipState = rememberTooltipState()
     val scope = rememberCoroutineScope()
     TooltipBox(
@@ -329,7 +279,7 @@ fun QuoteBox(
             RichTooltip(
                 action = {
                     TextButton(onClick = { scope.launch {
-                        onQuoteClick("To Browser!!")
+                        followLink(quoteSourceUrl, context)
                         tooltipState.dismiss()
                     } }) {
                         Text(text = "Source")
@@ -375,30 +325,53 @@ fun ImageDetailsScreen(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        val context = LocalContext.current
         val artistAttribution = artist.links["html"] + stringResource(id = R.string.utm_parameters)
         val unsplashAttribution =
             "https://unsplash.com/" + stringResource(id = R.string.utm_parameters)
 
         val annotatedString = buildAnnotatedString {
             append("Photo by ")
-            pushStringAnnotation(tag = "artist attribution", annotation = artistAttribution)
-            withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+            pushStringAnnotation(tag = "URL", annotation = artistAttribution)
+            withStyle(
+                style = SpanStyle(
+                    color = Color.Blue, textDecoration = TextDecoration.Underline
+                )
+            ) {
                 append(artist.artistName)
             }
             pop()
             append(" on ")
-            pushStringAnnotation(tag = "unsplash attribution", annotation = unsplashAttribution)
-            withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+            pushStringAnnotation(tag = "URL", annotation = unsplashAttribution)
+            withStyle(
+                style = SpanStyle(
+                    color = Color.Blue, textDecoration = TextDecoration.Underline
+                )
+            ) {
                 append("Unsplash")
             }
             pop()
         }
-        Text(
+
+        ClickableText(
             text = annotatedString,
-            fontSize = 24.sp,
-            fontStyle = FontStyle.Italic,
-            fontWeight = FontWeight.Bold
-        )
+            style = TextStyle(
+                fontSize = 24.sp,
+                fontStyle = FontStyle.Italic,
+                fontWeight = FontWeight.Bold
+            )
+        ) { offset ->
+            // We check if there is an *URL* annotation attached to the text
+            // at the clicked position
+            annotatedString.getStringAnnotations(
+                tag = "URL", start = offset, end = offset
+            ).firstOrNull()?.let { annotation ->
+                // If yes, we log its value
+                Log.d("Clicked URL", annotation.item)
+                followLink(annotation.item, context)
+            }
+        }
+
         ImageBox(
             image = image,
             imageType = "full",
@@ -408,7 +381,16 @@ fun ImageDetailsScreen(
     }
 }
 
-
+fun followLink(url: String, context: Context) {
+    val webIntent: Intent = Uri.parse(url).let { webpage ->
+        Intent(Intent.ACTION_VIEW, webpage)
+    }
+    try {
+        context.startActivity(webIntent)
+    } catch (e: ActivityNotFoundException) {
+        e.printStackTrace()
+    }
+}
 
 /*@Preview
 @Composable
@@ -427,23 +409,13 @@ fun FreshStartCardPreview() {
     FreshStartTheme {
         FreshStartCard(
             word = R.string.placeholder_word,
-            image = mockImage/*FreshImage(
-                id = "",
-                title = "",
-                urls = mapOf("" to ""),
-                artistInfo = FreshImageArtist(
-                    artistName = "",
-                    links = mapOf("" to ""),
-                    profileImage = mapOf("" to ""),
-                )
-            )*/,
+            image = mockImage,
             quote = listOf(
                 FreshQuote(
                     quote = stringResource(id = R.string.placeholder_quote),
                     quoteAuthor = stringResource(id = R.string.placeholder_author),
                 ),
             ),
-            onQuoteClick = {},
             onImageClick = {}
         )
     }
@@ -462,7 +434,6 @@ fun HomeScreenPreview() {
                     quoteAuthor = stringResource(id = R.string.placeholder_author)
                 )
             ),
-            onQuoteClick = {},
             onImageClick = {}
         )
     }

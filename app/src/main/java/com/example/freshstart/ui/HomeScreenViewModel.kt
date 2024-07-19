@@ -1,7 +1,6 @@
 package com.example.freshstart.ui
 
 import androidx.annotation.StringRes
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -30,8 +29,6 @@ sealed interface HomeUiState {
         var freshImage: FreshImage,
         var freshQuote: List<FreshQuote>,
         var freshImageArtist: FreshImageArtist
-        //@StringRes var quoteAuthor: Int = R.string.placeholder_author,
-        //var isRefreshing: Boolean = false
     ) : HomeUiState
 
     data object Error : HomeUiState
@@ -46,7 +43,6 @@ class HomeScreenViewModel(
         private set
     var isRefreshing by mutableStateOf(false)
         private set
-    var quoteSnackbarHostState = SnackbarHostState() // val? private set?
     var isBottomSheetVisible by mutableStateOf(false)
 
     init {
@@ -103,12 +99,6 @@ class HomeScreenViewModel(
             } finally {
                 isRefreshing = false
             }
-        }
-    }
-
-    fun showQuoteSnackbar(message: String) {
-        viewModelScope.launch {
-            quoteSnackbarHostState.showSnackbar(message)
         }
     }
 

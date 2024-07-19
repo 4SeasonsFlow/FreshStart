@@ -9,5 +9,6 @@
     <string name="placeholder_image_text">Placeholder Image Text</string>
     <string name="retry">Retry</string>
     <string name="zenqoutes_attribution">Inspirational quotes provided by ZenQuotes API</string>
+    <string name="zenqoutes_url">https://zenquotes.io/</string>
     <string name="utm_parameters">\?utm_source=fresh_start&amp;utm_medium=referral</string>
 </resources>
