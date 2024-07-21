@@ -1,6 +1,10 @@
 # FreshStart: Cool Quote, Cool Image, Nice Day!
 
-_**Disclaimer**: Package not yet available so images will not load unless you provide your own unsplash api keys in a "secrets.properties" file. Sorry, still in progress._
+_**Disclaimer**: Package not yet available so images will not load unless you provide your own unsplash api keys in a "secrets.properties" file, for example:_
+
+> UNSPLASH_API_KEY=[Insert Access Key Here]
+
+ _Sorry, still in progress but coming soon._
 
 Below are a few screenshots displaying the app functionality as of the second commit pushed in the repository.
 
